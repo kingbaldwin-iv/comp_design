@@ -358,7 +358,7 @@ let prob3_ans : int  = 42
 let prob3_case2 (x:int) : int  = prob3_ans - x
 
 (*
-  Replace 0 with a literal integer argument in the "Student-Provided Problem 3"
+  Replace 0 with a literal integer argument in the "Student-Provided Problem 3"eval $(opam env)opam install ocamlbuild
   test in providedtest.ml so that "case3" passes, given the definition below:
 *)
 let prob3_case3 : int =
@@ -1036,21 +1036,30 @@ let rec interpret (c:ctxt) (e:exp) : int64 =
   Hint: what simple optimizations can you do with Neg?
 *)
 
+let rec gen_context (s:string list) : ctxt =
+  match s with
+  | [] -> []
+  | f::rest -> (f,Int64.add 2L (Random.int64 100L))::(gen_context rest)
+
+let com_add_neg (e1:exp) (e2:exp) :bool = let a = gen_context (union (vars_of e1) (vars_of e2)) in interpret a e1 = Int64.neg (interpret a e2)
+
 let rec optimize (e:exp) : exp =
   match e with
   | Var x -> Var x
   | Const x -> Const x
-  | Add(x,y) when (is_empty (vars_of x)) && ((interpret [] x) = 0L) -> y
-  | Add(x,y) when (is_empty (vars_of y)) && ((interpret [] y) = 0L) -> x
+  | Add(x,y) when (com_add_neg x y) && (com_add_neg x y) -> Const 0L
+  | Add(x,y) when (is_empty (vars_of x)) && ((interpret [] x) = 0L) -> optimize y
+  | Add(x,y) when (is_empty (vars_of y)) && ((interpret [] y) = 0L) -> optimize x
   | Add(Const x,Const y) -> Const (Int64.add x y)
   | Add(x,y) -> if Add(optimize x, optimize y) = Add(x,y) then Add(x,y) else optimize (Add(optimize x, optimize y))
   | Mult(x,y) when (is_empty (vars_of x)) && ((interpret [] x) = 0L) -> Const 0L
   | Mult(x,y) when (is_empty (vars_of y)) && ((interpret [] y) = 0L) -> Const 0L
-  | Mult(x,y) when (is_empty (vars_of x)) && ((interpret [] x) = 1L) -> y
-  | Mult(x,y) when (is_empty (vars_of y)) && ((interpret [] y) = 1L) -> x
+  | Mult(x,y) when (is_empty (vars_of x)) && ((interpret [] x) = 1L) -> optimize y
+  | Mult(x,y) when (is_empty (vars_of y)) && ((interpret [] y) = 1L) -> optimize x
   | Mult(Const x,Const y) -> Const (Int64.mul x y)
   | Mult(x,y) -> if Mult(optimize x, optimize y) = Mult(x,y) then Mult(x,y) else optimize (Mult(optimize x, optimize y))
   | Neg(Const 0L) -> Const 0L
+  | Neg (Const x) -> Const (Int64.neg x)
   | Neg x -> Neg (optimize x)
 
 
