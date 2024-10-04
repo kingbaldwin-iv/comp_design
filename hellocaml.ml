@@ -3,8 +3,8 @@ let another_int : int = 3 * 14
 
 let z : int =
   let x = 3 in
-    let y = x + x in  
-      y * y + x       
+    let y = x + x in  (* x is in scope here *)
+      y * y + x       (* x and y are both in scope here *)
 
 let z : int =
   let x = 3 in begin
@@ -19,33 +19,33 @@ let z : int =
       y * y + x
     )
   )
-
+  
 let double : int -> int = fun  (x:int) -> x + x
 
-let doubled_z    : int = double z                 
-let quadrupled_z : int = double (double z)       
+let doubled_z    : int = double z                  (* call double on z  *)
+let quadrupled_z : int = double (double z)         (* parens needed for grouping *)
 let sextupled_z  : int = quadrupled_z + (double z)
 
 let mult : int -> int -> int =
   fun (x:int) -> fun (y:int) -> x * y
-let squared_z : int = mult z z   
+let squared_z : int = mult z z   (* multiply z times z *)
 
-let mult_by_3 : int -> int = mult 3      
-let mult_by_4 : int -> int = mult 4      
-let meaning_of_life : int = mult_by_3 14 
-let excellent_score : int = mult_by_4 25 
+let mult_by_3 : int -> int = mult 3      (* partially apply mult to 3 *)
+let mult_by_4 : int -> int = mult 4      (* partially apply mult to 4 *)
+let meaning_of_life : int = mult_by_3 14 (* call the partially applied function *)
+let excellent_score : int = mult_by_4 25 (* compute 100 *)
 
-let double (x:int) : int = x + x      
+let double (x:int) : int = x + x      (* this definition shadows the earlier one *)
 
 let mult (x:int) (y:int) : int = x * y
 
-let quadrupled_z : int        = double (double z)  
-let mult_by_3    : int -> int = mult 3             
+let quadrupled_z : int        = double (double z)  (* parens needed for grouping *)
+let mult_by_3    : int -> int = mult 3             (* partially apply mult to 3 *)
 
 let twice (f:int -> int) (x:int) : int =
   f (f x)
 
-let quadrupled_z_again : int = twice double z  
+let quadrupled_z_again : int = twice double z  (* pass double to twice *)
 
 let pieces : int = 8
 
@@ -70,19 +70,19 @@ let triple : int * bool * string = 3, true, "some string"
 let pair_of_triples: (int * bool * string) * (int * bool * string) =
   (triple, triple)
 
-let first_of_three (t:'a * 'b * 'c) : 'a =  
+let first_of_three (t:'a * 'b * 'c) : 'a =  (* t is a generic triple *)
   begin match t with
     | (x, _, _) -> x
   end
 
-let t1 : int = first_of_three triple   
+let t1 : int = first_of_three triple    (* binds t1 to 3 *)
 
 let second_of_three (t:'a * 'b * 'c) : 'b =
   begin match t with
     | (_, x, _) -> x
   end
 
-let t2 : bool = second_of_three triple  
+let t2 : bool = second_of_three triple  (* binds t2 to true *)
 
 let pair_up (x:'a) : ('a * 'a) = (x, x)
 
@@ -96,20 +96,20 @@ let compose_pair (p:(('b -> 'c) * ('a -> 'b))) : 'a -> 'c =
 
 let list1 : int list = 3::2::1::[]
 
-let list1' = [3;2;1]     
+let list1' = [3;2;1]     (* this is equivalent to list1 *)
 
 let is_empty (l:'a list) : bool =
   begin match l with
-    | []    -> true        
-    | h::tl -> false        
+    | []    -> true         (* nil case -- return true *)
+    | h::tl -> false        (* non-nil case -- return false *)
   end
 
-let ans1: bool = is_empty []    
-let ans2: bool = is_empty list1  
+let ans1: bool = is_empty []     (* evaluates to true *)
+let ans2: bool = is_empty list1  (* evaluates to false *)
 
 type 'a mylist =
-  | Nil                        
-  | Cons of 'a * ('a mylist)    
+  | Nil                         (* my version of [] *)
+  | Cons of 'a * ('a mylist)    (* Cons(h,tl) is my version of h::tl *)
 
 let mylist1 : int mylist = Cons (3, Cons (2, Cons (1, Nil)))
 
@@ -119,13 +119,13 @@ let is_mylist_empty (l:'a mylist) : bool =
     | Cons (h, tl) -> false
   end
 
-let rec sum (l:int list) : int =  
+let rec sum (l:int list) : int =  (* note the 'rec' keyword! *)
   begin match l with
     | []      -> 0
-    | (x::xs) -> x + (sum xs)   
+    | (x::xs) -> x + (sum xs)   (* note the recursive call to sum *)
   end
 
-let sum_ans1 : int = sum [1;2;3]    
+let sum_ans1 : int = sum [1;2;3]     (* evaluates to 6 *)
 
 let rec is_sorted (l:'a list) : bool =
   begin match l with
@@ -135,8 +135,8 @@ let rec is_sorted (l:'a list) : bool =
         h1 < h2 && (is_sorted (h2::tl))
   end
 
-let is_sorted_ans1 : bool = is_sorted [1;2;3]    
-let is_sorted_ans2 : bool = is_sorted [1;3;2]    
+let is_sorted_ans1 : bool = is_sorted [1;2;3]    (* true *)
+let is_sorted_ans2 : bool = is_sorted [1;3;2]    (* false *)
 
 let rec map (f:'a -> 'b) (l:'a list) : 'b list =
   begin match l with
@@ -144,10 +144,10 @@ let rec map (f:'a -> 'b) (l:'a list) : 'b list =
     | (h::tl) -> (f h)::(map f tl)
   end
 
-let map_ans1 : int list  = map double [1;2;3]    
+let map_ans1 : int list  = map double [1;2;3]    (* evaluates to [2;4;6]  *)
 let map_ans2 : (int * int) list =
-  map pair_up [1;2;3]    
-  
+  map pair_up [1;2;3]    (* evaluates to [(1,1);(2,2);(3,3)] *)
+
 let rec mylist_to_list (l:'a mylist) : 'a list =
   begin match l with
     | Nil -> []
@@ -199,17 +199,17 @@ let rec union (l1:'a list) (l2:'a list) : 'a list =
   | h::tl -> union tl (insert h l2)
 
 type exp =
-  | Var of string        
-  | Const of int64       
-  | Add of exp * exp     
-  | Mult of exp * exp    
-  | Neg of exp            
-  
-let e1 : exp = Mult(Const 2L, Const 3L)   
+  | Var of string         (* string representing an object-language variable *)
+  | Const of int64        (* a constant int64 value -- use the 'L' suffix *)
+  | Add of exp * exp      (* sum of two expressions *)
+  | Mult of exp * exp     (* product of two expressions *)
+  | Neg of exp            (* negation of an expression *)
 
-let e2 : exp = Add(Var "x", Const 1L)   
+let e1 : exp = Mult(Const 2L, Const 3L)   (* "2 * 3" *)
 
-let e3 : exp = Mult(Var "y", Mult(e2, Neg e2))     
+let e2 : exp = Add(Var "x", Const 1L)    (* "x + 1" *)
+
+let e3 : exp = Mult(Var "y", Mult(e2, Neg e2))     (* "y * ((x+1) * -(x+1))" *)
 
 let rec vars_of (e:exp) : string list =
   match e with
@@ -229,8 +229,8 @@ let rec string_of (e:exp) : string =
 
 type ctxt = (string * int64) list
 
-let ctxt1 : ctxt = [("x", 3L)]            
-let ctxt2 : ctxt = [("x", 2L); ("y", 7L)]  
+let ctxt1 : ctxt = [("x", 3L)]             (* maps "x" to 3L *)
+let ctxt2 : ctxt = [("x", 2L); ("y", 7L)]  (* maps "x" to 2L, "y" to 7L *)
 
 let rec lookup (x:string) (c:ctxt) : int64 =
   match c with
@@ -246,38 +246,61 @@ let rec interpret (c:ctxt) (e:exp) : int64 =
   | Mult(x,y) -> Int64.mul (interpret c x) (interpret c y)
   | Neg x -> Int64.neg (interpret c x)
 
-let rec gen_context (s:string list) : ctxt =
-  match s with
-  | [] -> []
-  | f::rest -> (f,Int64.add 2L (Random.int64 100L))::(gen_context rest)
+let rec can_get_rid_of (e:exp) : bool =
+  match e with
+  | Var x -> false
+  | Const x -> true
+  | Neg x -> true
+  | Mult(x,y) -> (can_get_rid_of x) || (can_get_rid_of y)
+  | Add(x,y) -> (can_get_rid_of x) && (can_get_rid_of y)
 
-let com_add_neg (e1:exp) (e2:exp) :bool = let a = gen_context (union (vars_of e1) (vars_of e2)) in interpret a e1 = Int64.neg (interpret a e2)
+let rec pass_neg_in (e:exp) : exp =
+  match e with
+  | Var x -> Neg(Var x)                           (* Nothing to do *)
+  | Const x -> Const (Int64.neg x)                (* CASE EXHAUSTION *)
+  | Neg x -> x                                    (* CASE EXHAUSTION *)
+  | Mult(x,y) when can_get_rid_of x -> Mult(pass_neg_in x, y)
+  | Mult(x,y) when can_get_rid_of y -> Mult(x, pass_neg_in y)
+  | Mult(x,y) -> Neg(Mult(x,y))
+  | Add(x,y) when (can_get_rid_of x) && (can_get_rid_of y) -> Add(pass_neg_in x, pass_neg_in y)
+  | Add(x,y) -> Neg(Add(x,y))
 
 let rec optimize (e:exp) : exp =
   match e with
   | Var x -> Var x
   | Const x -> Const x
-  | Add(x,y) when (com_add_neg x y) && (com_add_neg x y) -> Const 0L
-  | Add(x,y) when (is_empty (vars_of x)) && ((interpret [] x) = 0L) -> optimize y
-  | Add(x,y) when (is_empty (vars_of y)) && ((interpret [] y) = 0L) -> optimize x
+  | Add(x,y) when optimize x = optimize (Neg y) -> Const 0L
+  | Add(x,y) when optimize x = optimize y -> optimize (Mult(Const 2L, x))
+  | Add(Mult(Const x, y),z) when optimize y = optimize z -> optimize (Mult(Const (Int64.add 1L x), z))
+  | Add(Const 0L, y) -> optimize y
+  | Add(x, Const 0L) -> optimize x
   | Add(Const x,Const y) -> Const (Int64.add x y)
-  | Add(x,y) -> if Add(optimize x, optimize y) = Add(x,y) then Add(x,y) else optimize (Add(optimize x, optimize y))
-  | Mult(x,y) when (is_empty (vars_of x)) && ((interpret [] x) = 0L) -> Const 0L
-  | Mult(x,y) when (is_empty (vars_of y)) && ((interpret [] y) = 0L) -> Const 0L
-  | Mult(x,y) when (is_empty (vars_of x)) && ((interpret [] x) = 1L) -> optimize y
-  | Mult(x,y) when (is_empty (vars_of y)) && ((interpret [] y) = 1L) -> optimize x
+  | Add(Const x, Add(y, Const z)) -> optimize (Add(Const (Int64.add x z), y))
+  | Add(Const x, Add(Const z, y)) -> optimize (Add(Const (Int64.add x z), y))
+  | Add(Add(y, Const z), Const x) -> optimize (Add(Const (Int64.add x z), y))
+  | Add(Add(Const z, y), Const x) -> optimize (Add(Const (Int64.add x z), y))
+  | Add(x,y) -> let x2 = optimize x in let y2 = optimize y in (if y = y2 && x = x2 then Add(x,y) else optimize (Add(x2,y2)))
+  | Mult(Const 0L, _) -> Const 0L
+  | Mult(_, Const 0L) -> Const 0L
+  | Mult(Const 1L, y) -> optimize y
+  | Mult(x, Const 1L) -> optimize x
+  | Mult(Neg x, Neg y) -> optimize (Mult(x,y))
+  | Mult(Neg x, y) -> optimize (Neg(Mult(x,y)))
+  | Mult(x, Neg y) -> optimize (Neg(Mult(x,y)))
+  | Mult(x, Const (-1L)) -> optimize (Neg(x))
+  | Mult(Const (-1L),x) -> optimize (Neg(x))
   | Mult(Const x,Const y) -> Const (Int64.mul x y)
-  | Mult(x,y) -> if Mult(optimize x, optimize y) = Mult(x,y) then Mult(x,y) else optimize (Mult(optimize x, optimize y))
-  | Neg(Const 0L) -> Const 0L
-  | Neg (Const x) -> Const (Int64.neg x)
-  | Neg x -> Neg (optimize x)
-
+  | Mult(x,y) -> let x2 = optimize x in let y2 = optimize y in (if y = y2 && x = x2 then Mult(x,y) else optimize (Mult(x2,y2)))
+  | Neg(Const x) -> Const (Int64.neg x)
+  | Neg(Neg x) -> optimize x
+  | Neg x -> let x2 = optimize x in (if x2 = x then (if can_get_rid_of x2 then optimize (pass_neg_in x2) else Neg(x2)) else optimize (Neg(x2)))
+  
 type insn =
-  | IPushC of int64   
-  | IPushV of string  
-  | IMul              
-  | IAdd              
-  | INeg             
+  | IPushC of int64   (* push an int64 constant onto the stack *)
+  | IPushV of string  (* push (lookup string ctxt) onto the stack *)
+  | IMul              (* multiply the top two values on the stack *)
+  | IAdd              (* add the top two values on the stack *)
+  | INeg              (* negate the top value on the stack *)
 
 type program = insn list
 
@@ -285,8 +308,8 @@ type stack = int64 list
 
 let step (c:ctxt) (s:stack) (i:insn) : stack =
   begin match (i, s) with
-    | (IPushC n, _) -> n::s            
-    | (IPushV x, _) -> (lookup x c)::s  
+    | (IPushC n, _) -> n::s             (* push n onto the stack *)
+    | (IPushV x, _) -> (lookup x c)::s  (* lookup x, push it *)
     | (IMul, v1::v2::s) -> (Int64.mul v1 v2)::s
     | (IAdd, v1::v2::s) -> (Int64.add v1 v2)::s
     | (INeg, v1::s)     -> (Int64.neg v1)::s
@@ -295,7 +318,7 @@ let step (c:ctxt) (s:stack) (i:insn) : stack =
 
 let rec execute (c:ctxt) (s:stack) (p:program) : stack =
   begin match p with
-    | []      -> s 
+    | []      -> s  (* no more instructions to execute *)
     | i::cont -> execute c (step c s i) cont
   end
 
@@ -313,9 +336,12 @@ let p1 = [IPushC 2L; IPushC 3L; IMul]
 let ans1 = run [] p1
 
 let rec compile (e:exp) : program =
-  match e with
+  let e2 = optimize e
+  in
+  match e2 with
   | Var x -> [IPushV x]
   | Const x -> [IPushC x]
   | Add(x,y) -> (compile x) @ (compile y) @ [IAdd]
   | Mult(x,y) -> (compile x) @ (compile y) @ [IMul]
   | Neg x -> (compile x) @ [INeg]
+
