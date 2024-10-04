@@ -294,6 +294,49 @@ let rec optimize (e:exp) : exp =
   | Neg(Const x) -> Const (Int64.neg x)
   | Neg(Neg x) -> optimize x
   | Neg x -> let x2 = optimize x in (if x2 = x then (if can_get_rid_of x2 then optimize (pass_neg_in x2) else Neg(x2)) else optimize (Neg(x2)))
+
+(*
+
+let rec con (e:exp) : int =
+  match e with
+  | Var x -> 1
+  | Const x -> 1
+  | Add(x,y) -> 1 + con x + con y
+  | Mult(x,y) -> 1 + con x + con y
+  | Neg x -> 1 + con x
+
+let rec get_best_ass (e1:exp) (e2:exp) (e3:exp) : exp = let c1 = con e1 in let c2 = con e2 in let c3 = con e3 in (if c1 <= c2 then (if c1 <= c3 then e1 else e3) else (if c2 <= c3 then e2 else e3)
+let rec optimize2 (e:exp) (f:int) : exp =
+  match e with
+  | Var x -> Var x
+  | Const x -> Const x
+  | Add(x,y) when optimize2 x 0 = optimize2 (Neg y) 0 -> Const 0L
+  | Add(x,y) when optimize2 x 0 = optimize2 y 0 -> optimize2 (Mult(Const 2L, x)) 0
+  | Add(x,Add(y,z)) when f = 0 -> let one = optimize2 (Add(x,Add(y,z))) 1 in let two = optimize2 (Add(Add(x,y),z)) 1 in let three = optimize2 (Add(Add(x,z),y)) 1 in get_best_ass one two three
+  | Add(Mult(Const x, y),z) when optimize y = optimize z -> optimize (Mult(Const (Int64.add 1L x), z))
+  | Add(Const 0L, y) -> optimize y
+  | Add(x, Const 0L) -> optimize x
+  | Add(Const x,Const y) -> Const (Int64.add x y)
+  | Add(Const x, Add(y, Const z)) -> optimize (Add(Const (Int64.add x z), y))
+  | Add(Const x, Add(Const z, y)) -> optimize (Add(Const (Int64.add x z), y))
+  | Add(Add(y, Const z), Const x) -> optimize (Add(Const (Int64.add x z), y))
+  | Add(Add(Const z, y), Const x) -> optimize (Add(Const (Int64.add x z), y))
+  | Add(x,y) -> let x2 = optimize x in let y2 = optimize y in (if y = y2 && x = x2 then Add(x,y) else optimize (Add(x2,y2)))
+  | Mult(Const 0L, _) -> Const 0L
+  | Mult(_, Const 0L) -> Const 0L
+  | Mult(Const 1L, y) -> optimize y
+  | Mult(x, Const 1L) -> optimize x
+  | Mult(Neg x, Neg y) -> optimize (Mult(x,y))
+  | Mult(Neg x, y) -> optimize (Neg(Mult(x,y)))
+  | Mult(x, Neg y) -> optimize (Neg(Mult(x,y)))
+  | Mult(x, Const (-1L)) -> optimize (Neg(x))
+  | Mult(Const (-1L),x) -> optimize (Neg(x))
+  | Mult(Const x,Const y) -> Const (Int64.mul x y)
+  | Mult(x,y) -> let x2 = optimize x in let y2 = optimize y in (if y = y2 && x = x2 then Mult(x,y) else optimize (Mult(x2,y2)))
+  | Neg(Const x) -> Const (Int64.neg x)
+  | Neg(Neg x) -> optimize x
+  | Neg x -> let x2 = optimize x in (if x2 = x then (if can_get_rid_of x2 then optimize (pass_neg_in x2) else Neg(x2)) else optimize (Neg(x2)))
+  *)
   
 type insn =
   | IPushC of int64   (* push an int64 constant onto the stack *)
